@@ -112,6 +112,7 @@ def update_user_roles(
 
     user.roles = role_objs
     db_session.commit()
+    return user.roles
 
 
 @router.get(
@@ -138,11 +139,12 @@ def update_user_shops(
     """
 
     shop_objs = shopservice.get_multiple_by_ids(db_session=db_session, ids_=shops_ids)
-    if len(shops_ids) != len(shops_ids):
+    if len(shops_ids) != len(shop_objs):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="One of the specified shops was not found man.",
         )
 
-    user.roles = [shop_objs]
+    user.shops = shop_objs
     db_session.commit()
+    return user.shops

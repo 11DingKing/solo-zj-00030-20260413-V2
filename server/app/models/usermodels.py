@@ -93,3 +93,10 @@ class UserRead(PydanticTS, UserBase):
     first_name: str
     last_name: str
     status: UserStatus
+    roles: Optional[List] = None
+
+    @validator("roles", pre=True)
+    def convert_roles(cls, v):
+        if v is None:
+            return []
+        return [{"id": r.id, "name": r.name, "description": r.description} if hasattr(r, "id") else r for r in v]

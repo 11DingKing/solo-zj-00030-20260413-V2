@@ -5,9 +5,9 @@ import {
   Mutation,
   VuexModule
 } from "vuex-module-decorators";
-import { deleteUser, getUsers, updateUser, createUser } from "@/api/users";
+import { deleteUser, getUsers, updateUser, createUser, updateUserRoles, getUserRoles } from "@/api/users";
 import store from "@/store";
-import { IUserCreate, IUserData, IUserUpdate } from "@/api/types";
+import { IUserCreate, IUserData, IUserUpdate, IRoleData } from "@/api/types";
 
 export interface IUsersState {
   users: IUserData[];
@@ -58,6 +58,29 @@ class Users extends VuexModule implements IUsersState {
   public async DeleteUser(id: number) {
     await deleteUser(id);
     this.DELETE_USER(id);
+  }
+
+  @Action
+  public async UpdateUserRoles(payload: { userId: number; roleIds: number[] }) {
+    const { data } = await updateUserRoles(payload.userId, payload.roleIds);
+    this.UPDATE_USER_ROLES({ userId: payload.userId, roles: data });
+  }
+
+  @Action
+  public async GetUserRoles(userId: number) {
+    const { data } = await getUserRoles(userId);
+    this.UPDATE_USER_ROLES({ userId, roles: data });
+  }
+
+  @Mutation
+  private UPDATE_USER_ROLES(payload: { userId: number; roles: IRoleData[] }) {
+    const users = this.users.map((user: IUserData) => {
+      if (user.id === payload.userId) {
+        return { ...user, roles: payload.roles };
+      }
+      return user;
+    });
+    this.users = users;
   }
 }
 

@@ -157,6 +157,22 @@ export const asyncRoutes: RouteConfig[] = [
     ]
   },
   {
+    path: '/products',
+    component: Layout,
+    children: [
+      {
+        path: ':id',
+        component: () => import(/* webpackChunkName: "product-detail" */ '@/views/products/ProductDetail.vue'),
+        name: 'ProductDetail',
+        meta: {
+          title: 'Product Detail',
+          noCache: true,
+          hidden: true
+        }
+      }
+    ]
+  },
+  {
     path: "*",
     redirect: "/404",
     meta: { hidden: true }

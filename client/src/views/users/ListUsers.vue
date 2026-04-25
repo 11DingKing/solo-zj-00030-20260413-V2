@@ -37,6 +37,27 @@
       />
 
       <el-table-column
+        label="Roles"
+        prop="roles"
+        min-width="150"
+      >
+        <template slot-scope="{row}">
+          <el-tag
+            v-for="role in row.roles"
+            :key="role.id"
+            type="primary"
+            size="small"
+            style="margin-right: 5px; margin-bottom: 5px;"
+          >
+            {{ role.name }}
+          </el-tag>
+          <span v-if="!row.roles || row.roles.length === 0" style="color: #909399;">
+            No roles
+          </span>
+        </template>
+      </el-table-column>
+
+      <el-table-column
         label="Status"
         prop="status"
         min-width="100"
@@ -76,9 +97,19 @@
       <el-table-column
         fixed="right"
         label="Actions"
-        min-width="100px"
+        min-width="180px"
       >
         <template slot-scope="{row}">
+          <el-button
+            type="success"
+            plain
+            size="small"
+            icon="el-icon-s-custom"
+            @click="handleAssignRoles(row)"
+          >
+            Roles
+          </el-button>
+
           <el-button
             type="primary"
             plain
@@ -103,6 +134,44 @@
     </el-table>
 
     <el-dialog
+      title="Assign Roles"
+      :visible.sync="roleDialogVisible"
+      width="40%"
+    >
+      <el-form label-width="120px">
+        <el-form-item label="User">
+          <span>{{ currentUser ? currentUser.email : '' }}</span>
+        </el-form-item>
+        <el-form-item label="Roles">
+          <el-select
+            v-model="selectedRoleIds"
+            multiple
+            placeholder="Select roles"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="role in allRoles"
+              :key="role.id"
+              :label="role.name"
+              :value="role.id"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <span
+        slot="footer"
+        class="dialog-footer"
+      >
+        <el-button @click="roleDialogVisible = false">Cancel</el-button>
+        <el-button
+          type="primary"
+          :loading="savingRoles"
+          @click="saveUserRoles"
+        >Save</el-button>
+      </span>
+    </el-dialog>
+
+    <el-dialog
       title="Tips"
       :visible.sync="deleteDialogVisible"
       width="30%"
@@ -125,8 +194,9 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import { IUserData, IUserUpdate } from '@/api/types';
+import { IUserData, IUserUpdate, IRoleData } from '@/api/types';
 import { UsersModule } from '@/store/modules/users';
+import { RolesModule } from '@/store/modules/roles';
 import EditUser from './EditUser.vue';
 import { UserStatus } from '@/api/enums';
 
@@ -141,17 +211,26 @@ export default class extends Vue {
   private listQuery = { offset: 0, limit: 100 };
   private tempUserData = {} as IUserData;
   private deleteDialogVisible = false;
+  private roleDialogVisible = false;
+  private savingRoles = false;
+  private currentUser: IUserData | null = null;
+  private selectedRoleIds: number[] = [];
 
   get users() {
     return UsersModule.users;
+  }
+
+  get allRoles() {
+    return RolesModule.roles;
   }
 
   get userStatus() {
     return UserStatus;
   }
 
-  created() {
+  async created() {
     this.getUserList();
+    await RolesModule.GetRoles({});
   }
 
   private resetTempArticleData() {
@@ -177,6 +256,30 @@ export default class extends Vue {
 
   private async updateData() {
     await UsersModule.UpdateUser(this.tempUserData.id, {});
+  }
+
+  private handleAssignRoles(user: IUserData) {
+    this.currentUser = user;
+    this.selectedRoleIds = (user.roles || []).map((r: IRoleData) => r.id);
+    this.roleDialogVisible = true;
+  }
+
+  private async saveUserRoles() {
+    if (!this.currentUser) return;
+    
+    this.savingRoles = true;
+    try {
+      await UsersModule.UpdateUserRoles({
+        userId: this.currentUser.id,
+        roleIds: this.selectedRoleIds
+      });
+      this.$message.success('Roles updated successfully');
+      this.roleDialogVisible = false;
+    } catch (error) {
+      this.$message.error('Failed to update roles');
+    } finally {
+      this.savingRoles = false;
+    }
   }
 }
 </script>

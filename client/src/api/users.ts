@@ -34,8 +34,9 @@ export const getUserRoles = (id: number) =>
     method: 'get',
   });
 
-export const updateUserRoles = (id: number) =>
+export const updateUserRoles = (id: number, roleIds: number[]) =>
   http.request<IRoleData[]>({
     url: `/users/${id}/roles`,
-    method: 'get',
+    method: 'put',
+    data: roleIds,
   });

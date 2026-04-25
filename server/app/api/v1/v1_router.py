@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from .dependencies.auth import admin_role
-from .routes import auth, me, roles, shops, users
+from .routes import auth, me, roles, shops, users, products, notifications
 
 router = APIRouter()
 
@@ -24,3 +24,15 @@ router.include_router(
 )
 
 router.include_router(router=shops.router, prefix="/shops", tags=["shops"])
+
+router.include_router(
+    router=products.router,
+    prefix="/products",
+    tags=["products"],
+)
+
+router.include_router(
+    router=notifications.router,
+    prefix="/notifications",
+    tags=["notifications"],
+)
