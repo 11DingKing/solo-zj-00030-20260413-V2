@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------------
 # `python-base` sets up all our shared environment variables
-FROM python:3.8.1-slim-buster as python-base
+FROM python:3.8-slim-bullseye as python-base
     # python
     # prevent python buffering stdout/stderr
 ENV PYTHONUNBUFFERED=1 \
